@@ -1,0 +1,17 @@
+{
+  "name": "viva-backend",
+  "version": "1.0.1",
+  "description": "a backend with javascript ",
+  "keywords": [
+    "javascript",
+    "viva",
+    "backend"
+  ],
+  "license": "ISC",
+  "author": "programmerviva",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

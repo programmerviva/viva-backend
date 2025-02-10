@@ -241,11 +241,64 @@ const refreshAccessToken = asyncHandler(async (res, req) => {
           "Access token refreshed successfully"
         )
       );
-  } catch (error) 
-      {
-        throw new ApiError(401, error?.message || 
-          "Invalid refresh token")
-      }
+  } catch (error) {
+    throw new ApiError(401, error?.message || "Invalid refresh token");
+  }
 });
 
-export { registerUser, loginUser, logoutUser, refreshAccessToken };
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+  // get user details from frontend
+  // validate password
+  // update password in db
+  // send res
+
+  const { oldPassword, newPassword } = req.body;
+
+  // if want add confPassword then use it
+  // const { oldPassword, newPassword, confPassword } = req.body;
+  // if(!(newPassword === confPassword)){
+  //   throw new ApiError(400, "Passwords do not match");
+  // }
+
+  const user = await User.findById(req.user?.id);
+  const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+
+  if (!isPasswordCorrect) {
+    throw new ApiError(400, "Invalid old password");
+  }
+
+  user.password = newPassword;
+  await user.save({
+    validateBeforeSave: false,
+  });
+
+  return res
+   .status(200)
+   .json(new ApiResponse(200, {}, "Password changed successfully"));
+
+});
+
+
+const getCurrentUser = asyncHandler(async(req, res) => {
+  // get user details from frontend
+  // validate password
+  // update password in db
+  // send res
+
+  return res
+  .status(200)
+  .json(new ApiResponse(200, req.user, "Current user fetch successfully"));
+
+})
+
+
+
+
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  refreshAccessToken,
+  changeCurrentPassword,
+  getCurrentUser,
+};

@@ -170,8 +170,8 @@ const logoutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
     req.user._id,
     {
-      $set: {
-        refreshToken: undefined,
+      $unset: {
+        refreshToken: 1,
       },
     },
     {
@@ -191,13 +191,13 @@ const logoutUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "User logged out successfully"));
 });
 
-const refreshAccessToken = asyncHandler(async (res, req) => {
+const refreshAccessToken = asyncHandler(async (req, res) => {
   // get refresh token from cookies
   // validate refresh token in db
   // generate new access token
   // send new access token in cookie
   const incomingRefreshToken =
-    req.cookies.refreshToken || req.body.refreshToken;
+    req.cookies?.refreshToken || req.body?.refreshToken;
 
   if (!incomingRefreshToken) {
     throw new ApiError(401, "Unauthorized request");
@@ -314,70 +314,23 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 });
 
 // this code is correct if your down code is not work then you should uncomment this codes.
-
-// const updateUserAvatar = asyncHandler(async (res, req) => {
-//   const avatarLocalPath = req.file?.path;
-
-//   if (!avatarLocalPath) {
-//     throw new ApiError(400, "Avatar file is missing");
-//   }
-
-//   // TODO: delete old avatar image
-
-//   const avatar = await uploadOnCloudinary(avatarLocalPath);
-
-//   if (!avatar.url) {
-//     throw new ApiError(400, "Error while uploading on avatar");
-//   }
-
-//   const user = await User.findByIdAndUpdate(
-//     req.user?._id,
-//     {
-//       $set: {
-//         avatar: avatar.url,
-//       },
-//     },
-//     { new: true }
-//   ).select("-password");
-
-//   return res
-//     .status(200)
-//     .json(new ApiResponse(200, user, "Avatar updated successfully"));
-// });
-
-// this section is include with delete old image avatar after unloading new one  -- ths code from DeepSeek  ** start code **
-// Helper function to delete image from Cloudinary
-const deleteFromCloudinary = async (publicId) => {
-  try {
-    await cloudinary.uploader.destroy(publicId);
-  } catch (error) {
-    console.error("Error deleting image from Cloudinary:", error);
-    throw new ApiError(500, "Failed to delete old avatar");
-  }
-};
-
 const updateUserAvatar = asyncHandler(async (req, res) => {
-  // Fix parameter order (req, res)
+  console.log(req.file?.path);
+  
   const avatarLocalPath = req.file?.path;
 
   if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar file is missing");
   }
 
-  // Upload new avatar to Cloudinary
+  // TODO: delete old avatar image
+
   const avatar = await uploadOnCloudinary(avatarLocalPath);
+
   if (!avatar.url) {
-    throw new ApiError(400, "Error while uploading avatar");
+    throw new ApiError(400, "Error while uploading on avatar");
   }
 
-  // Get current user to find the old avatar URL
-  const currentUser = await User.findById(req.user?._id);
-  if (!currentUser) {
-    throw new ApiError(404, "User not found");
-  }
-  const oldAvatarUrl = currentUser.avatar;
-
-  // Update user document with new avatar URL
   const user = await User.findByIdAndUpdate(
     req.user?._id,
     {
@@ -388,26 +341,74 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     { new: true }
   ).select("-password");
 
-  // Delete old avatar image from Cloudinary after successful update
-  if (oldAvatarUrl) {
-    const publicId = extractPublicId(oldAvatarUrl);
-    if (publicId) {
-      try {
-        await deleteFromCloudinary(publicId);
-      } catch (error) {
-        // Log error but don't fail the request
-        console.error("Failed to delete old avatar:", error);
-      }
-    }
-  }
-
   return res
     .status(200)
     .json(new ApiResponse(200, user, "Avatar updated successfully"));
 });
+
+// this section is include with delete old image avatar after unloading new one  -- ths code from DeepSeek  ** start code **
+// Helper function to delete image from Cloudinary
+// const deleteFromCloudinary = async (publicId) => {
+//   try {
+//     await cloudinary.uploader.destroy(publicId);
+//   } catch (error) {
+//     console.error("Error deleting image from Cloudinary:", error);
+//     throw new ApiError(500, "Failed to delete old avatar");
+//   }
+// };
+
+// const updateUserAvatar = asyncHandler(async (req, res) => {
+//   // Fix parameter order (req, res)
+//   const avatarLocalPath = req.file?.path;
+
+//   if (!avatarLocalPath) {
+//     throw new ApiError(400, "Avatar file is missing");
+//   }
+
+//   // Upload new avatar to Cloudinary
+//   const avatar = await uploadOnCloudinary(avatarLocalPath);
+//   if (!avatar.url) {
+//     throw new ApiError(400, "Error while uploading avatar");
+//   }
+
+//   // Get current user to find the old avatar URL
+//   const currentUser = await User.findById(req.user?._id);
+//   if (!currentUser) {
+//     throw new ApiError(404, "User not found");
+//   }
+//   const oldAvatarUrl = currentUser.avatar;
+
+//   // Update user document with new avatar URL
+//   const user = await User.findByIdAndUpdate(
+//     req.user?._id,
+//     {
+//       $set: {
+//         avatar: avatar.url,
+//       },
+//     },
+//     { new: true }
+//   ).select("-password");
+
+//   // Delete old avatar image from Cloudinary after successful update
+//   if (oldAvatarUrl) {
+//     const publicId = extractPublicId(oldAvatarUrl);
+//     if (publicId) {
+//       try {
+//         await deleteFromCloudinary(publicId);
+//       } catch (error) {
+//         // Log error but don't fail the request
+//         console.error("Failed to delete old avatar:", error);
+//       }
+//     }
+//   }
+
+//   return res
+//     .status(200)
+//     .json(new ApiResponse(200, user, "Avatar updated successfully"));
+// });
 // this section is include with delete old image avatar after unloading new one  -- ths code from DeepSeek  ** end code **
 
-const updateUserCoverImage = asyncHandler(async (res, req) => {
+const updateUserCoverImage = asyncHandler(async (req, res) => {
   const coverImageLocalPath = req.file?.path;
 
   if (!coverImageLocalPath) {
@@ -477,7 +478,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         },
         isSubscribed: {
           $cond: {
-            if: { $in: [request.user?._id, "$subscribers.subscriber"] },
+            if: { $in: [req.user?._id, "$subscribers.subscriber"] },
             then: true,
             else: false,
           },

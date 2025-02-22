@@ -187,4 +187,5 @@ For support and queries:
 
 ## 🔐 Security
 
-Report security vulnerabilities to security@viva.com
+Report security vulnerabilities to sd.vikasvaibhav@gmail.com
+

@@ -182,7 +182,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 For support and queries:
 - Create an issue
-- Contact: support@viva.com
+- Contact: sd.vikasvaibhav@gmail.com
 - Documentation: [docs/](./docs)
 
 ## 🔐 Security
